@@ -2,11 +2,11 @@ import argparse
 import sys
 from tabulate import tabulate
 
-import re
+from db import connect_db, init_db, load_db, add_item, tabulate_db, find_item, remove_item
 
-from db import connect_db, init_db, load_db, add_item, db_to_table, find_item
 
 DB_FILE_NAME = "inv.db"
+SCHEMA_SQL = "schema.sql"
 
 def main():
     # argpase config
@@ -25,32 +25,23 @@ def main():
     
     # create and/or initialize database
     if args.i:
-        # connect to db
-        con = connect_db(DB_FILE_NAME)
-        
         # initialize db
-        init_db(con)
-        
+        init_db(DB_FILE_NAME, SCHEMA_SQL)
         print("Database initialized.")
         sys.exit(0)
     
     elif args.a:
-        # connect to db; create cursor
-        db = connect_db(DB_FILE_NAME)
-        cur = db.cursor()
-        
-        # initialize func variable
-        func = False
-        
-        while func == False:
-            func = add_item(cur, inv)
+        with connect_db(DB_FILE_NAME) as db:
+            cur = db.cursor()
+            
+            func = False
+            while func is False:
+                func = add_item(inv, db, cur)
 
-        # commit changes and close connection
-        db.commit()
-        db.close()
+            db.commit()
         
-        # print database as table
-        table = db_to_table(DB_FILE_NAME)
+        # print db as table
+        table = tabulate_db(DB_FILE_NAME)
         print(table)
         
     elif args.f:
@@ -61,6 +52,20 @@ def main():
                 print(tabulate(matching_data, headers=["Item", "Quantity"], tablefmt="grid"))
             else:
                 print(f"{item} not in inventory")
+                
+    elif args.r:
+        with connect_db(DB_FILE_NAME) as db:
+            cur = db.cursor()
+            
+            func = False
+            while func is False:
+                func = remove_item(inv, db, cur)
+            
+            db.commit()
+            
+        # print db as table
+        table = tabulate_db(DB_FILE_NAME)
+        print(table)
 
 if __name__ == "__main__":
     main()
