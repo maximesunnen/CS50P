@@ -4,7 +4,6 @@ from tabulate import tabulate
 
 from db import connect_db, init_db, load_db, add_item, find_item, remove_item, tabulate_db
 
-
 DB_FILE_NAME = "inv.db"
 SCHEMA_SQL = "schema.sql"
 
@@ -21,9 +20,6 @@ def main():
     
     args = parser.parse_args()
     
-    # load db into memory (type(inv): dict)
-    inv = load_db(DB_FILE_NAME)
-    
     # create and/or initialize database
     if args.i:
         # initialize db
@@ -32,12 +28,14 @@ def main():
         sys.exit(0)
     
     elif args.a:
+        # load db into memory (type(inv): dict)
+        inv = load_db(DB_FILE_NAME)
+        
         with connect_db(DB_FILE_NAME) as db:
             cur = db.cursor()
             
-            func = False
-            while func is False:
-                func = add_item(inv, db, cur)
+            while func := add_item(inv, db, cur) is False:
+                continue
 
             db.commit()
         
@@ -46,12 +44,14 @@ def main():
         print(table)
         
     elif args.r:
+        # load db into memory (type(inv): dict)
+        inv = load_db(DB_FILE_NAME)
+        
         with connect_db(DB_FILE_NAME) as db:
             cur = db.cursor()
             
-            func = False
-            while func is False:
-                func = remove_item(inv, db, cur)
+            while func := remove_item(inv, db, cur) is False:
+                continue
             
             db.commit()
 
@@ -59,6 +59,9 @@ def main():
         print(tabulate_db(DB_FILE_NAME))
 
     elif args.f:
+        # load db into memory (type(inv): dict)
+        inv = load_db(DB_FILE_NAME)
+        
         while True:
             item, matching_data = find_item(inv)
             
