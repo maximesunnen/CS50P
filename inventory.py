@@ -18,6 +18,8 @@ def main():
     
     parser.add_argument("-f", "-find", action="store_true", help="Find item(s) in the inventory")
     
+    parser.add_argument("-v", "-view", action="store_true", help="View item(s) in the inventory")
+    
     args = parser.parse_args()
     
     # create and/or initialize database
@@ -69,6 +71,9 @@ def main():
                 print(tabulate(matching_data, headers=["Item", "Quantity"], tablefmt="grid"))
             else:
                 print(f"{item} not in inventory")
+                
+    elif args.v:
+        print(tabulate_db(DB_FILE_NAME))
 
 if __name__ == "__main__":
     main()
