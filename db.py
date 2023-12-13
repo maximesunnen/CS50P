@@ -1,7 +1,7 @@
 import sqlite3
 from sqlite3 import Error
-from tabulate import tabulate
 from helpers import get_item_input, get_quantity_input
+from tabulate import tabulate
 import re
 import sys
 
@@ -32,8 +32,7 @@ def init_db(DB_FILE_NAME, SCHEMA_SQL):
     
 def load_db(DB_FILE_NAME):
     """
-    Load the database as a dict. Each item-quantity pair in the database becomes
-    a key-value pair in the dict.
+    Returns the database as a dict object with item-quantity pairs.
     """
     with connect_db(DB_FILE_NAME) as db:
         # change row_factory, create cursor
@@ -52,16 +51,16 @@ def load_db(DB_FILE_NAME):
 
 def add_item(inv, db, cur):
     """
-    Add item to the database. 
-    Return True if the user pressed CTRL+D, otherwise return False
+    Add item to the database. Return True if the user pressed CTRL+D, False otherwise.
     """
     
-    # Get inputs
+    # Get item
     item = get_item_input("Item to add")
     
     if item is None:
         return True
     
+    # Get quantity, convert to int
     quantity = get_quantity_input("Quantity")
     
     if quantity is not None:
@@ -90,31 +89,6 @@ def add_item(inv, db, cur):
             print("Error 003: db.IntegrityError")
         
     return False
-
-def tabulate_db(DB_FILE_NAME):
-    # load database as dict
-    inv = load_db(DB_FILE_NAME)
-    
-    inv_list = []
-    
-    for key in inv.keys():
-        inv_list.append([key, inv[key]])
-        
-    return tabulate(inv_list, tablefmt="grid", headers=["Item", "Quantity"])
-
-def find_item(inv):
-    item = get_item_input("Search item")
-    
-    if item is None:
-        sys.exit(0)
-    
-    # regular expression
-    pattern = re.compile(f"^.*{item}.*$")
-
-    # find matches
-    matching_data = [[key, value] for key, value in inv.items() if pattern.match(key)]
-    
-    return item, matching_data
 
 def remove_item(inv, db, cur):
     """
@@ -155,3 +129,29 @@ def remove_item(inv, db, cur):
         print("Error 005: db.IntegrityError")
         
     return False
+
+def find_item(inv):
+    item = get_item_input("Search item")
+    
+    if item is None:
+        sys.exit(0)
+    
+    # regular expression
+    pattern = re.compile(f"^.*{item}.*$")
+
+    # find matches
+    matching_data = [[key, value] for key, value in inv.items() if pattern.match(key)]
+    
+    return item, matching_data
+
+    
+def tabulate_db(DB_FILE_NAME):
+    # load database as dict
+    inv = load_db(DB_FILE_NAME)
+
+    inv_list = []
+
+    for key in inv.keys():
+        inv_list.append([key, inv[key]])
+        
+    return tabulate(inv_list, tablefmt="grid", headers=["Item", "Quantity"])

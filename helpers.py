@@ -1,5 +1,3 @@
-import sys
-
 def get_item_input(msg):
     """
     """
