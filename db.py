@@ -74,7 +74,7 @@ def add_item(inv, db, cur):
     try:
         quantity = int(quantity)
     except ValueError:
-        print(colored("Invalid quantity!", "red"))
+        print(colored("Invalid quantity!", "yellow"))
         return False
     
     # Validate inputs and add items
@@ -88,6 +88,7 @@ def add_item(inv, db, cur):
     except db.IntegrityError:
         print(colored("Error 003: db.IntegrityError"), "red")
 
+    print(colored(f"Added {quantity} {item} to the inventory!", "green"))
     return False
 
 def remove_item(inv, db, cur):
@@ -104,7 +105,7 @@ def remove_item(inv, db, cur):
         return True
     
     if item not in inv:
-        print(colored("Item not in inventory!", "red"))
+        print(colored("Item not in inventory!", "yellow"))
         return False
     
     # Get quantity and validate
@@ -115,20 +116,29 @@ def remove_item(inv, db, cur):
     
     try:
         if (quantity := int(quantity)) > inv.get(item, 0):
-            print(colored("Trying to remove more items than you own!", "red"))
+            print(colored("Trying to remove more items than you own!", "yellow"))
             return False
     except ValueError:
-        print(colored("Invalid quantity!", "red"))
+        print(colored("Invalid quantity!", "yellow"))
         return False
     
-    # database logic
-    inv[item] -= quantity
-    
-    try:
-        cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv.get(item), item))
-    except db.IntegrityError:
-        print(colored("Error 005: db.IntegrityError", "red"))
+    if quantity == inv.get(item, 0):
+        try:
+            cur.execute("DELETE FROM inv WHERE item = ?", (item,))
+        except sqlite3.Error as e:
+            print(colored(f"Error deleting row: {e}", "red"))
+            return False
+    else:    
+        # database logic
+        inv[item] -= quantity
         
+        try:
+            cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv.get(item), item))
+        except db.IntegrityError:
+            print(colored("Error 005: db.IntegrityError", "red"))
+        
+    print(colored(f"Removed {quantity} {item} from the inventory!", "green"))
+    
     return False
 
 def find_item(inv):
