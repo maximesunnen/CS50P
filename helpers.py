@@ -1,4 +1,4 @@
-from termcolor import colored
+from termcolor import cprint
 
 def get_item_input(msg):
     """
@@ -9,7 +9,7 @@ def get_item_input(msg):
     try:
         return input(f"{msg}: ").upper().strip()
     except EOFError:
-        print(colored("\nExiting program...", "red"))
+        cprint("\nExiting program...", "black", "on_white")
         return None
     
 def get_quantity_input(msg):
@@ -21,5 +21,5 @@ def get_quantity_input(msg):
     try:
         return input(f"{msg}: ")
     except EOFError:
-        print(colored("\nExiting program...", "red"))
+        cprint("\nExiting program...", "black", "on_white")
         return None
