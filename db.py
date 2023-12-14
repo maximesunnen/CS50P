@@ -3,6 +3,7 @@ from helpers import get_item_input, get_quantity_input
 from tabulate import tabulate
 import re
 import sys
+from termcolor import colored
 
 def connect_db(DB_FILE_NAME):
     """
@@ -10,7 +11,6 @@ def connect_db(DB_FILE_NAME):
     :param DB_FILE_NAME: The path to the database file to be opened
     :type DB_FILE_NAME: string
     """
-    con = None
     
     try:
         db = sqlite3.connect(DB_FILE_NAME)
@@ -24,6 +24,7 @@ def init_db(DB_FILE_NAME, SCHEMA_SQL):
     :param str DB_FILE_NAME: Path to the database file to be opened
     :param str SCHEMA_SQL: Path to the schema.sql file to be used for initialization
     """
+    
     with connect_db(DB_FILE_NAME) as db:
         cur = db.cursor()
     
@@ -53,7 +54,7 @@ def load_db(DB_FILE_NAME):
 def add_item(inv, db, cur):
     """
     Add item to the database. Return True if the user pressed CTRL+D, False otherwise.
-    :param dict inv: Dict object representing the database.
+    :param dict inv: Dict object corresponding to the database.
     :param sqlite3.Connection db: A SQLite database connection.
     :param sqlite3.Cursor cur: A SQLite Cursor instance.
     """
@@ -73,7 +74,7 @@ def add_item(inv, db, cur):
     try:
         quantity = int(quantity)
     except ValueError:
-        print("Invalid quantity")
+        print(colored("Invalid quantity!", "red"))
         return False
     
     # Validate inputs and add items
@@ -85,13 +86,16 @@ def add_item(inv, db, cur):
     try:
         cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?) ON CONFLICT(item) DO UPDATE SET quantity = ?", (item, inv.get(item), inv.get(item)))
     except db.IntegrityError:
-        print("Error 003: db.IntegrityError")
+        print(colored("Error 003: db.IntegrityError"), "red")
 
     return False
 
 def remove_item(inv, db, cur):
     """
     Get item and quantity, validate and remove item from the database. Returns True to signal program exit, False otherwise.
+    :param dict inv:
+    :param sqlite3.Connection db: A SQLite database connection.
+    :param sqlite3.Cursor cur: A SQLite Cursor instance.
     """
     # Get item
     item = get_item_input("Item to remove")
@@ -100,7 +104,7 @@ def remove_item(inv, db, cur):
         return True
     
     if item not in inv:
-        print("Item not in inventory")
+        print(colored("Item not in inventory!", "red"))
         return False
     
     # Get quantity and validate
@@ -111,10 +115,10 @@ def remove_item(inv, db, cur):
     
     try:
         if (quantity := int(quantity)) > inv.get(item, 0):
-            print("Removing more items than you own")
+            print(colored("Trying to remove more items than you own!", "red"))
             return False
     except ValueError:
-        print("Invalid quantity")
+        print(colored("Invalid quantity!", "red"))
         return False
     
     # database logic
@@ -123,13 +127,14 @@ def remove_item(inv, db, cur):
     try:
         cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv.get(item), item))
     except db.IntegrityError:
-        print("Error 005: db.IntegrityError")
+        print(colored("Error 005: db.IntegrityError", "red"))
         
     return False
 
 def find_item(inv):
     """
     Find item in inventory using regular expression matching. Return list of matching items.
+    :param dict inv: Dict object corresponding to the database.
     """
     item = get_item_input("Search item")
     
@@ -146,7 +151,11 @@ def find_item(inv):
 
     
 def tabulate_db(DB_FILE_NAME):
-    # load database as dict
+    """
+    Return plain-text table of inventory.
+    :param str DB_FILE_NAME: Path to the database file to be opened
+    """
+
     inv = load_db(DB_FILE_NAME)
 
     inv_list = []
