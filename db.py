@@ -25,11 +25,21 @@ def init_db(DB_FILE_NAME, SCHEMA_SQL):
     :param str SCHEMA_SQL: Path to the schema.sql file to be used for initialization
     """
     
-    with connect_db(DB_FILE_NAME) as db:
-        cur = db.cursor()
+    confirm = input("Are you sure you want to initialize the database? (y/n) ").upper()
     
-        with open(SCHEMA_SQL) as f:
-            cur.executescript(f.read())
+    while confirm not in ["Y", "N", "YES", "NO"]:
+        confirm = input("Are you sure you want to initialize the database? (y/n) ").upper()
+
+    if confirm == "Y" or confirm == "YES":
+        with connect_db(DB_FILE_NAME) as db:
+            cur = db.cursor()
+        
+            with open(SCHEMA_SQL) as f:
+                cur.executescript(f.read())
+        print(colored("Database initialized.", "black", "on_white"))
+        
+    else:
+        print(colored("Canceled database initialization.", "black", "on_white"))
     
 def load_db(DB_FILE_NAME):
     """
@@ -170,7 +180,7 @@ def tabulate_db(DB_FILE_NAME):
 
     inv_list = []
 
-    for key in inv.keys():
+    for key in sorted(inv.keys()):
         inv_list.append([key, inv[key]])
         
     return tabulate(inv_list, tablefmt="grid", headers=["Item", "Quantity"])

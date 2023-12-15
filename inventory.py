@@ -26,7 +26,6 @@ def main():
     if args.i:
         # initialize db
         init_db(DB_FILE_NAME, SCHEMA_SQL)
-        print("Database initialized.")
         sys.exit(0)
     
     elif args.a:
