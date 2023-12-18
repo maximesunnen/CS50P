@@ -70,8 +70,36 @@ def main():
         with connect_db(DB_FILE_NAME) as db:
             cur = db.cursor()
             
-            while func := remove_item(inv, db, cur) is False:
-                continue
+            while True:
+                # Get item and validate
+                if (item := get_item_input("Item to remove")) is None:
+                    break
+                
+                if item not in inv:
+                    print(colored("Item not in inventory!", "yellow"))
+                    continue
+                
+                # Get quantity and validate
+                if (quantity := get_quantity_input("Quantity")) is None:
+                    break
+                
+                try:
+                    quantity = int(quantity)
+                except ValueError:
+                    print(colored("Invalid quantity!", "yellow"))
+                    continue
+                
+                if quantity > inv.get(item, 0):
+                    print(colored("Trying to remove more items than you own!", "yellow"))
+                    continue
+                
+                # Remove item from db
+                status = remove_item(item, quantity, inv, db, cur)
+                
+                if status is True:
+                    print(colored(f"Removed {quantity} {item} from the inventory!", "green"))
+                else:
+                    continue
             
             db.commit()
 
@@ -114,55 +142,30 @@ def add_item(item, quantity, inv, db, cur):
 
     return True
 
-def remove_item(inv, db, cur):
+def remove_item(item, quantity, inv, db, cur):
     """
     Get item and quantity, validate and remove item from the database. Returns True to signal program exit, False otherwise.
     :param dict inv:
     :param sqlite3.Connection db: A SQLite database connection.
     :param sqlite3.Cursor cur: A SQLite Cursor instance.
     """
-    # Get item
-    item = get_item_input("Item to remove")
-    
-    if item is None:
-        return True
-    
-    if item not in inv:
-        print(colored("Item not in inventory!", "yellow"))
-        return False
-    
-    # Get quantity and validate
-    quantity = get_quantity_input("Quantity")
-    
-    if quantity is None:
-        return True
-    
-    try:
-        if (quantity := int(quantity)) > inv.get(item, 0):
-            print(colored("Trying to remove more items than you own!", "yellow"))
-            return False
-    except ValueError:
-        print(colored("Invalid quantity!", "yellow"))
-        return False
-    
+        
     if quantity == inv.get(item, 0):
         try:
             cur.execute("DELETE FROM inv WHERE item = ?", (item,))
+            return True
         except sqlite3.Error as e:
             print(colored(f"Error deleting row: {e}", "red"))
             return False
     else:    
-        # database logic
         inv[item] -= quantity
         
         try:
             cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv.get(item), item))
-        except db.IntegrityError:
-            print(colored("Error 005: db.IntegrityError", "red"))
-        
-    print(colored(f"Removed {quantity} {item} from the inventory!", "green"))
-    
-    return False
+            return True
+        except db.IntegrityError as e:
+            print(colored("Error updating row: {e}", "red"))
+            return False
 
 def find_item(inv):
     """
