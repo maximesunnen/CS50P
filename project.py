@@ -3,7 +3,7 @@ import argparse
 import sys
 from tabulate import tabulate
 from termcolor import colored
-from helpers import get_item_input, get_quantity_input
+from helpers import get_item_input, get_quantity_input, is_valid_quantity
 import re
 from db import connect_db, init_db, load_db, tabulate_db
 
@@ -32,23 +32,39 @@ def main():
         sys.exit(0)
     
     elif args.a:
-        # load db into memory (type(inv): dict)
+        # Load db into memory (type(inv): dict)
         inv = load_db(DB_FILE_NAME)
         
         with connect_db(DB_FILE_NAME) as db:
             cur = db.cursor()
             
-            while func := add_item(inv, db, cur) is False:
-                continue
+            while True:
+                # Get item
+                if (item := get_item_input("Item to add")) is None:
+                    break
+                
+                # Get quantity and validate
+                if (quantity := get_quantity_input("Quantity")) is None:
+                    break
+                
+                if (quantity := is_valid_quantity(quantity)) is False:
+                    continue
+
+                # Add item to db
+                status = add_item(item, quantity, inv, db, cur)
+                
+                if status is True:
+                    print(colored(f"Added {quantity} {item} to the inventory!", "green"))
+                else:
+                    sys.exit(colored(status))
 
             db.commit()
         
-        # print db as table
-        table = tabulate_db(DB_FILE_NAME)
-        print(table)
+        # Print db as table
+        print(tabulate_db(DB_FILE_NAME))
         
     elif args.r:
-        # load db into memory (type(inv): dict)
+        # Load db into memory (type(inv): dict)
         inv = load_db(DB_FILE_NAME)
         
         with connect_db(DB_FILE_NAME) as db:
@@ -59,7 +75,7 @@ def main():
             
             db.commit()
 
-        # print db as table
+        # Print db as table
         print(tabulate_db(DB_FILE_NAME))
 
     elif args.f:
@@ -78,33 +94,14 @@ def main():
         print(tabulate_db(DB_FILE_NAME))
         
         
-def add_item(inv, db, cur):
+def add_item(item, quantity, inv, db, cur):
     """
-    Add item to the database. Return True if the user pressed CTRL+D, False otherwise.
+    Add item to the database. Return True if no exception raised. Return the db.IntegrityError otherwise.
     :param dict inv: Dict object corresponding to the database.
     :param sqlite3.Connection db: A SQLite database connection.
     :param sqlite3.Cursor cur: A SQLite Cursor instance.
     """
-    
-    # Get item
-    item = get_item_input("Item to add")
-    
-    if item is None:
-        return True
-    
-    # Get quantity and validate
-    quantity = get_quantity_input("Quantity")
-    
-    if quantity is None:
-        return True
-        
-    try:
-        quantity = int(quantity)
-    except ValueError:
-        print(colored("Invalid quantity!", "yellow"))
-        return False
-    
-    # Validate inputs and add items
+
     if item in inv:
         inv[item] += quantity
     else:
@@ -112,11 +109,10 @@ def add_item(inv, db, cur):
 
     try:
         cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?) ON CONFLICT(item) DO UPDATE SET quantity = ?", (item, inv.get(item), inv.get(item)))
-    except db.IntegrityError:
-        print(colored("Error 003: db.IntegrityError"), "red")
+    except db.IntegrityError as e:
+        return e
 
-    print(colored(f"Added {quantity} {item} to the inventory!", "green"))
-    return False
+    return True
 
 def remove_item(inv, db, cur):
     """
