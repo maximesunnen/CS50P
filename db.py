@@ -1,7 +1,5 @@
 import sqlite3
-from helpers import get_item_input, get_quantity_input
 from tabulate import tabulate
-import re
 import sys
 from termcolor import colored
 
@@ -60,115 +58,6 @@ def load_db(DB_FILE_NAME):
             dict.update({r["item"]: r["quantity"]})
     
     return dict
-
-def add_item(inv, db, cur):
-    """
-    Add item to the database. Return True if the user pressed CTRL+D, False otherwise.
-    :param dict inv: Dict object corresponding to the database.
-    :param sqlite3.Connection db: A SQLite database connection.
-    :param sqlite3.Cursor cur: A SQLite Cursor instance.
-    """
-    
-    # Get item
-    item = get_item_input("Item to add")
-    
-    if item is None:
-        return True
-    
-    # Get quantity and validate
-    quantity = get_quantity_input("Quantity")
-    
-    if quantity is None:
-        return True
-        
-    try:
-        quantity = int(quantity)
-    except ValueError:
-        print(colored("Invalid quantity!", "yellow"))
-        return False
-    
-    # Validate inputs and add items
-    if item in inv:
-        inv[item] += quantity
-    else:
-        inv.update({item: quantity})
-
-    try:
-        cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?) ON CONFLICT(item) DO UPDATE SET quantity = ?", (item, inv.get(item), inv.get(item)))
-    except db.IntegrityError:
-        print(colored("Error 003: db.IntegrityError"), "red")
-
-    print(colored(f"Added {quantity} {item} to the inventory!", "green"))
-    return False
-
-def remove_item(inv, db, cur):
-    """
-    Get item and quantity, validate and remove item from the database. Returns True to signal program exit, False otherwise.
-    :param dict inv:
-    :param sqlite3.Connection db: A SQLite database connection.
-    :param sqlite3.Cursor cur: A SQLite Cursor instance.
-    """
-    # Get item
-    item = get_item_input("Item to remove")
-    
-    if item is None:
-        return True
-    
-    if item not in inv:
-        print(colored("Item not in inventory!", "yellow"))
-        return False
-    
-    # Get quantity and validate
-    quantity = get_quantity_input("Quantity")
-    
-    if quantity is None:
-        return True
-    
-    try:
-        if (quantity := int(quantity)) > inv.get(item, 0):
-            print(colored("Trying to remove more items than you own!", "yellow"))
-            return False
-    except ValueError:
-        print(colored("Invalid quantity!", "yellow"))
-        return False
-    
-    if quantity == inv.get(item, 0):
-        try:
-            cur.execute("DELETE FROM inv WHERE item = ?", (item,))
-        except sqlite3.Error as e:
-            print(colored(f"Error deleting row: {e}", "red"))
-            return False
-    else:    
-        # database logic
-        inv[item] -= quantity
-        
-        try:
-            cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv.get(item), item))
-        except db.IntegrityError:
-            print(colored("Error 005: db.IntegrityError", "red"))
-        
-    print(colored(f"Removed {quantity} {item} from the inventory!", "green"))
-    
-    return False
-
-def find_item(inv):
-    """
-    Find item in inventory using regular expression matching. Return list of matching items.
-    :param dict inv: Dict object corresponding to the database.
-    """
-    item = get_item_input("Search item")
-    
-    if item is None:
-        sys.exit(0)
-    
-    # Regular expression
-    pattern = re.compile(f"^.*{item}.*$")
-
-    # find matches
-    matching_data = [[key, value] for key, value in inv.items() if pattern.match(key)]
-    
-    return item, matching_data
-
     
 def tabulate_db(DB_FILE_NAME):
     """
