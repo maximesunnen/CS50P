@@ -5,9 +5,7 @@ from tabulate import tabulate
 from termcolor import colored
 from helpers import get_item_input, get_quantity_input
 import re
-
-
-from db import connect_db, init_db, load_db, add_item, find_item, remove_item, tabulate_db
+from db import connect_db, init_db, load_db, tabulate_db
 
 DB_FILE_NAME = "inv.db"
 SCHEMA_SQL = "schema.sql"

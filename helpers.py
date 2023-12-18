@@ -1,4 +1,4 @@
-from termcolor import cprint
+from termcolor import cprint, colored
 
 def get_item_input(msg):
     """
@@ -23,3 +23,17 @@ def get_quantity_input(msg):
     except EOFError:
         cprint("\nExiting program...", "black", "on_white")
         return None
+    
+def is_valid_quantity(quantity):
+    """
+    Return True if quantity is larger than 0. Return False otherwise or if a ValueError exception is raised.
+    """
+    try:
+        quantity = int(quantity)
+        if quantity > 0:
+            return quantity
+        else:
+            return False
+    except ValueError:
+        print(colored("Invalid quantity!", "yellow"))
+        return False
