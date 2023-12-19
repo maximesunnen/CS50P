@@ -15,63 +15,58 @@ def main():
     parser = argparse.ArgumentParser()
     
     parser.add_argument("-i", "-init", action="store_true", help="Initialize the database")
-    
     parser.add_argument("-a", "-add", action="store_true", help="Add item(s) to the inventory")
     parser.add_argument("-r", "-remove", action="store_true", help="Remove item(s) from the inventory")
-    
     parser.add_argument("-f", "-find", action="store_true", help="Find item(s) in the inventory")
-    
     parser.add_argument("-v", "-view", action="store_true", help="View item(s) in the inventory")
     
     args = parser.parse_args()
     
-    # create and/or initialize database
+    # Initialize db if -i flag; otherwise load db as dict
     if args.i:
-        # initialize db
         init_db(DB_FILE_NAME, SCHEMA_SQL)
         sys.exit(0)
-    
-    elif args.a:
-        # Load db into memory (type(inv): dict)
+    else:
         inv = load_db(DB_FILE_NAME)
-        
+    
+    # Add item to db if -a flag
+    if args.a:        
         with connect_db(DB_FILE_NAME) as db:
             cur = db.cursor()
             
             while True:
-                # Get item
+                # Get item and quantity
                 if (item := get_item_input("Item to add")) is None:
                     break
                 
-                # Get quantity and validate
                 if (quantity := get_quantity_input("Quantity")) is None:
                     break
                 
+                # Validate quantity
                 if (quantity := is_valid_quantity(quantity)) is False:
                     continue
 
-                # Add item to db
-                status = add_item(item, quantity, inv, db, cur)
+                # Add item to db. add_item returns True or db.IntegrityError
+                added = add_item(item, quantity, inv, db, cur)
                 
-                if status is True:
+                if added is True:
                     print(colored(f"Added {quantity} {item} to the inventory!", "green"))
                 else:
-                    sys.exit(colored(status))
+                    sys.exit(colored(added))
 
+            # Commit db changes
             db.commit()
         
         # Print db as table
-        print(tabulate_db(DB_FILE_NAME))
+        print(tabulate_db(inv))
         
     elif args.r:
-        # Load db into memory (type(inv): dict)
-        inv = load_db(DB_FILE_NAME)
-        
+    #UPDATE INV OBJECT!!!! IF NOT THE TABULATE_DB WILL RESULT IN WRONG OUTPUT!!!!!!!
         with connect_db(DB_FILE_NAME) as db:
             cur = db.cursor()
             
             while True:
-                # Get item and validate
+                # Get item and quantity
                 if (item := get_item_input("Item to remove")) is None:
                     break
                 
@@ -79,7 +74,6 @@ def main():
                     print(colored("Item not in inventory!", "yellow"))
                     continue
                 
-                # Get quantity and validate
                 if (quantity := get_quantity_input("Quantity")) is None:
                     break
                 
@@ -92,26 +86,24 @@ def main():
                 if quantity > inv.get(item, 0):
                     print(colored("Trying to remove more items than you own!", "yellow"))
                     continue
-                
+
                 # Remove item from db
-                status = remove_item(item, quantity, inv, db, cur)
-                
-                if status is True:
+                removed = remove_item(item, quantity, inv, db, cur)
+
+                if removed is True:
                     print(colored(f"Removed {quantity} {item} from the inventory!", "green"))
                 else:
-                    continue
+                    sys.exit(colored(removed))
             
             db.commit()
 
         # Print db as table
-        print(tabulate_db(DB_FILE_NAME))
+        print(tabulate_db(inv))
 
     elif args.f:
-        # Load db into memory (type(inv): dict)
-        inv = load_db(DB_FILE_NAME)
-        
-        # Get item
+
         while True:
+            # Get item
             if (item := get_item_input("Search item")) is None:
                 sys.exit(0)
         
@@ -125,27 +117,28 @@ def main():
                 continue
                 
     elif args.v:
-        print(tabulate_db(DB_FILE_NAME))
-        
+        print(tabulate_db(inv))
         
 def add_item(item, quantity, inv, db, cur):
     """
-    Add item to the database. Return True if no exception raised. Return the db.IntegrityError otherwise.
-    :param dict inv: Dict object corresponding to the database.
-    :param sqlite3.Connection db: A SQLite database connection.
-    :param sqlite3.Cursor cur: A SQLite Cursor instance.
+    Add item to the database. Return True if no exception raised. Return db.IntegrityError otherwise.
+    :param str item: Item to add.
+    :param str quantity: Quantity to add.
+    :param dict inv: Dict representation of the database.
+    :param sqlite3.Connection db: open SQLite database connection.
+    :param sqlite3.Cursor cur: SQLite Cursor instance.
     """
 
-    if item in inv:
-        inv[item] += quantity
-    else:
-        inv.update({item: quantity})
-
     try:
-        cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?) ON CONFLICT(item) DO UPDATE SET quantity = ?", (item, inv.get(item), inv.get(item)))
+        if item in inv:
+            cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv[item]+quantity, item))
+            inv[item] += quantity
+        else:
+            cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?)", (item, inv.get(item)))
+            inv.update({item: quantity})
     except db.IntegrityError as e:
         return e
-
+    
     return True
 
 def remove_item(item, quantity, inv, db, cur):
@@ -156,22 +149,18 @@ def remove_item(item, quantity, inv, db, cur):
     :param sqlite3.Cursor cur: A SQLite Cursor instance.
     """
         
-    if quantity == inv.get(item, 0):
-        try:
+    try:
+        if quantity == inv.get(item, 0):
             cur.execute("DELETE FROM inv WHERE item = ?", (item,))
-            return True
-        except sqlite3.Error as e:
-            print(colored(f"Error deleting row: {e}", "red"))
-            return False
-    else:    
-        inv[item] -= quantity
-        
-        try:
-            cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv.get(item), item))
-            return True
-        except db.IntegrityError as e:
-            print(colored("Error updating row: {e}", "red"))
-            return False
+            inv.pop(item)
+        else:   
+            cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv[item]-quantity, item))
+            inv[item] -= quantity
+    except (sqlite3.Error, KeyError) as e:
+        print(colored(f"Error: {e}", "red"))
+        return e
+    
+    return True
 
 def find_item(item, inv):
     """
