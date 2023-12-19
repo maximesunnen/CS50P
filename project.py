@@ -107,16 +107,22 @@ def main():
         print(tabulate_db(DB_FILE_NAME))
 
     elif args.f:
-        # load db into memory (type(inv): dict)
+        # Load db into memory (type(inv): dict)
         inv = load_db(DB_FILE_NAME)
         
+        # Get item
         while True:
-            item, matching_data = find_item(inv)
+            if (item := get_item_input("Search item")) is None:
+                sys.exit(0)
+        
+            item, matching_data = find_item(item, inv)
             
             if matching_data:
                 print(tabulate(matching_data, headers=["Item", "Quantity"], tablefmt="grid"))
+                continue
             else:
                 print(f"{item} not in inventory")
+                continue
                 
     elif args.v:
         print(tabulate_db(DB_FILE_NAME))
@@ -167,16 +173,12 @@ def remove_item(item, quantity, inv, db, cur):
             print(colored("Error updating row: {e}", "red"))
             return False
 
-def find_item(inv):
+def find_item(item, inv):
     """
     Find item in inventory using regular expression matching. Return list of matching items.
     :param dict inv: Dict object corresponding to the database.
     """
-    item = get_item_input("Search item")
-    
-    if item is None:
-        sys.exit(0)
-    
+
     # Regular expression
     pattern = re.compile(f"^.*{item}.*$")
 
