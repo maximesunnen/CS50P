@@ -59,13 +59,11 @@ def load_db(DB_FILE_NAME):
     
     return dict
     
-def tabulate_db(DB_FILE_NAME):
+def tabulate_db(inv):
     """
     Return plain-text table of inventory.
-    :param str DB_FILE_NAME: Path to the database file to be opened
+    :param str inv: dictionary of database
     """
-
-    inv = load_db(DB_FILE_NAME)
 
     inv_list = []
 
