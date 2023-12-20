@@ -33,21 +33,22 @@ CREATE TABLE inv (
 );
 ```
 
-**Note:** before initialization, you will be asked at the prompt to confirm your choice:
-
-`Are you sure you want to initialize the database? (y/n)`
+>[!NOTE]
+>Before initialization, you will have to confirm your choice:
+>
+>`Are you sure you want to initialize the database? (y/n)`
 
 ### `python3 project.py -a`
 Adds item to the database.
 
-First, you have to enter the item to insert into the database:
+1. Enter the item to insert into the database:
 
 ```
 > python3 project.py -a
   Item to add: coffee 150g
 ```
 
-Second, you have to enter the quantity to insert into the database:
+2. Enter the quantity to insert into the database:
 ```
 > python3 project.py -a
   Item to add: coffee 150g
@@ -57,7 +58,7 @@ Second, you have to enter the quantity to insert into the database:
 >[!WARNING] 
 > The quantity needs to be an integer. Thus, you cannot remove a fraction of an item.
 
-A confirmation message appears and you're prompted for the next item to add:
+3. A confirmation message appears and you're prompted for the next item to add:
 ```
 > python3 project.py -a
   Item to add: coffee 150g
@@ -69,21 +70,21 @@ A confirmation message appears and you're prompted for the next item to add:
 ### `python3 project.py -r`
 Removes item from the database.
 
-First, you have to enter the item to remove from the database:
+1. Enter the item to remove from the database:
 
 ```
 > python3 project.py -r
   Item to remove: coffee 150g
 ```
 
-Second, you have to enter the quantity to remove from the database:
+2. Enter the quantity to remove from the database:
 ```
 > python3 project.py -r
   Item to remove: coffee 150g
   Quantity: 2
 ```
 
-A confirmation message appears and you're prompted for the next item to remove:
+3. A confirmation message appears and you're prompted for the next item to remove:
 ```
 > python3 project.py -r
   Item to remove: coffee 150g
@@ -94,7 +95,6 @@ A confirmation message appears and you're prompted for the next item to remove:
 
 >[!WARNING] 
 > You cannot remove more items than you own:
-
 >```
 > python3 project.py -r
 >  Item to remove: coffee 150g
@@ -104,9 +104,9 @@ A confirmation message appears and you're prompted for the next item to remove:
 >```
 
 ### `python3 project.py -f`
-Finds item from the database based on regular expression pattern matching.
+Finds items from the database based on regular expression pattern matching.
 
-First, you have to enter the item you want to find in the database:
+1. Enter the item you want to find in the database:
 
 ```
 > python3 project.py -f
@@ -115,8 +115,8 @@ First, you have to enter the item you want to find in the database:
 
 >[!NOTE] 
 > Note that you **don't** have to name items exactly as they're stored inside the database. Here, I replaced "coffee 150g" by "coffee", but the searching will still work. This is because I use the following regexp to look for items:
-
->`pattern = re.compile(f"^.*{item}.*$")``
+>
+>`pattern = re.compile(f"^.*{item}.*$")`
 
 In case of a match, a table is printed to the console and you're prompted for the next item to search for.
 
