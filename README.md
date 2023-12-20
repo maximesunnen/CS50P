@@ -53,11 +53,9 @@ Second, you have to enter the quantity to insert into the database:
   Item to add: coffee 150g
   Quantity: 5
 ```
-```
-[!WARNING] Urgent info that needs immediate user attention to avoid problems.
-```
 
-Note: the quantity needs to be an integer. Thus, you cannot remove a fraction of an item.
+>[!WARNING] 
+> The quantity needs to be an integer. Thus, you cannot remove a fraction of an item.
 
 A confirmation message appears and you're prompted for the next item to add:
 ```
@@ -94,15 +92,16 @@ A confirmation message appears and you're prompted for the next item to remove:
   Item to remove:
 ```
 
-You cannot remove more items than you own:
+>[!WARNING] 
+> You cannot remove more items than you own:
 
-```
+>```
 > python3 project.py -r
-  Item to remove: coffee 150g
-  Quantity: 1000
-  Trying to remove more items than you own!
-  Item to remove:
-```
+>  Item to remove: coffee 150g
+>  Quantity: 1000
+>  Trying to remove more items than you own!
+>  Item to remove:
+>```
 
 ### `python3 project.py -f`
 Finds item from the database based on regular expression pattern matching.
@@ -114,9 +113,10 @@ First, you have to enter the item you want to find in the database:
   Search item: coffee
 ```
 
-Note that you **don't** have to name items exactly as they're stored inside the database. Here, I replaced "coffee 150g" by "coffee", but the searching will still work. This is because I use the following regexp to look for items:
+>[!NOTE] 
+> Note that you **don't** have to name items exactly as they're stored inside the database. Here, I replaced "coffee 150g" by "coffee", but the searching will still work. This is because I use the following regexp to look for items:
 
-`pattern = re.compile(f"^.*{item}.*$")``
+>`pattern = re.compile(f"^.*{item}.*$")``
 
 In case of a match, a table is printed to the console and you're prompted for the next item to search for.
 
