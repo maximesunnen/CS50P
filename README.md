@@ -1,11 +1,11 @@
 # CS50P- Introduction to programming with Python
-Command-line tool to interact with an inventory implemented as a SQL database using sqlite3. Navigation using CL flags.
+Command-line tool to interact with an inventory implemented as a SQL database using sqlite3.
 
 ## Usage
 
 `python3 project.py [-h] [-i] [-a] [-r] [-f] [-v]`
 
-To exit the program at any stage, use **CTRL+D**.
+To exit the program, use **CTRL+D**.
 
 ## Flags
 
@@ -25,7 +25,6 @@ Deletes existing tables and recreates the database using the SQL commands in `sc
 ```
 DROP TABLE IF EXISTS inv;
 
--- Table to store user (child) information
 CREATE TABLE inv (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   item TEXT NOT NULL UNIQUE,
@@ -39,16 +38,16 @@ CREATE TABLE inv (
 >`Are you sure you want to initialize the database? (y/n)`
 
 ### `python3 project.py -a`
-Adds item to the database.
+Adds an item to the database.
 
-1. Enter the item to insert into the database:
+1. Enter item to insert:
 
 ```
 > python3 project.py -a
   Item to add: coffee 150g
 ```
 
-2. Enter the quantity to insert into the database:
+2. Enter quantity to insert:
 ```
 > python3 project.py -a
   Item to add: coffee 150g
@@ -56,7 +55,7 @@ Adds item to the database.
 ```
 
 >[!WARNING] 
-> The quantity needs to be an integer. Thus, you cannot remove a fraction of an item.
+> The quantity must be an integer. Thus, you cannot remove a fraction of an item.
 
 3. A confirmation message appears and you're prompted for the next item to add:
 ```
@@ -94,7 +93,7 @@ Removes item from the database.
 ```
 
 >[!WARNING] 
-> You cannot remove more items than you own:
+> 1. You cannot remove more items than you own:
 >```
 > python3 project.py -r
 >  Item to remove: coffee 150g
@@ -102,11 +101,12 @@ Removes item from the database.
 >  Trying to remove more items than you own!
 >  Item to remove:
 >```
+> 2. You **must** spell the item to remove exactly as it is saved inside the database. This can definitely be improved in the future.
 
 ### `python3 project.py -f`
-Finds items from the database based on regular expression pattern matching.
+Finds items in the database based on regular expression pattern matching.
 
-1. Enter the item you want to find in the database:
+1. Enter the item you want to find:
 
 ```
 > python3 project.py -f
