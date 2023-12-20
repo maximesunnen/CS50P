@@ -134,7 +134,7 @@ def add_item(item, quantity, inv, db, cur):
             cur.execute("UPDATE inv SET quantity = ? WHERE item = ?", (inv[item]+quantity, item))
             inv[item] += quantity
         else:
-            cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?)", (item, inv.get(item)))
+            cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?)", (item, quantity))
             inv.update({item: quantity})
     except db.IntegrityError as e:
         return e
