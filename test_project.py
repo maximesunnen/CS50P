@@ -1,6 +1,6 @@
 from project import add_item, remove_item, find_item
-from db import load_db
-from db import connect_db
+from db import load_db, connect_db
+from helpers import get_item_input, get_quantity_input, is_valid_quantity
 import pytest
 import sqlite3
 
@@ -117,3 +117,23 @@ class TestClass:
         
         _, matching_data = find_item(TEST_ITEM_2, inv)
         assert matching_data == []
+
+
+    def test_get_item_input_valid_input(self, monkeypatch):
+        monkeypatch.setattr("builtins.input", lambda _: "user_input")
+        result = get_item_input("Enter item")
+        assert result == "USER_INPUT"
+
+    def test_get_quantity_input_valid_input(self, monkeypatch):
+        monkeypatch.setattr("builtins.input", lambda _: "1")
+        result = get_quantity_input("Enter item")
+        assert result == "1"
+        
+    def test_is_valid_quantity_valid(self):
+        assert is_valid_quantity("1") == 1
+        assert is_valid_quantity("6") == 6
+
+
+    def test_is_valid_quantity_invalid(self):
+        assert is_valid_quantity("1.1") is False
+        assert is_valid_quantity("cat") is False
