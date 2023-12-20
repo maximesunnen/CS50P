@@ -1,11 +1,13 @@
 import sqlite3
 import argparse
 import sys
+import re
 from tabulate import tabulate
 from termcolor import colored
 from helpers import get_item_input, get_quantity_input, is_valid_quantity
-import re
 from db import connect_db, init_db, load_db, tabulate_db
+
+from typing import List, Dict, Tuple, Union
 
 DB_FILE_NAME = "inv.db"
 SCHEMA_SQL = "schema.sql"
@@ -47,7 +49,7 @@ def main():
                     continue
 
                 # Add item to db. add_item returns True or db.IntegrityError
-                added = add_item(item, quantity, inv, db, cur)
+                added = add_item(item, quantity, inv, cur)
                 
                 if added is True:
                     print(colored(f"Added {quantity} {item} to the inventory!", "green"))
@@ -61,7 +63,6 @@ def main():
         print(tabulate_db(inv))
         
     elif args.r:
-    #UPDATE INV OBJECT!!!! IF NOT THE TABULATE_DB WILL RESULT IN WRONG OUTPUT!!!!!!!
         with connect_db(DB_FILE_NAME) as db:
             cur = db.cursor()
             
@@ -88,7 +89,7 @@ def main():
                     continue
 
                 # Remove item from db
-                removed = remove_item(item, quantity, inv, db, cur)
+                removed = remove_item(item, quantity, inv, cur)
 
                 if removed is True:
                     print(colored(f"Removed {quantity} {item} from the inventory!", "green"))
@@ -113,20 +114,20 @@ def main():
                 print(tabulate(matching_data, headers=["Item", "Quantity"], tablefmt="grid"))
                 continue
             else:
-                print(f"{item} not in inventory")
+                print(colored(f"{item} not in inventory", "yellow"))
                 continue
                 
     elif args.v:
         print(tabulate_db(inv))
         
-def add_item(item, quantity, inv, db, cur):
+def add_item(item: str, quantity: int, inv: Dict[str, int], cur: sqlite3.Cursor) -> bool:
     """
     Add item to the database. Return True if no exception raised. Return db.IntegrityError otherwise.
     :param str item: Item to add.
-    :param str quantity: Quantity to add.
-    :param dict inv: Dict representation of the database.
-    :param sqlite3.Connection db: open SQLite database connection.
+    :param str quantity: Quantity of item to add.
+    :param dict[str, int] inv: Database as a dict object.
     :param sqlite3.Cursor cur: SQLite Cursor instance.
+    :rtype: bool
     """
 
     try:
@@ -136,19 +137,22 @@ def add_item(item, quantity, inv, db, cur):
         else:
             cur.execute("INSERT INTO inv (item, quantity) VALUES (?, ?)", (item, quantity))
             inv.update({item: quantity})
-    except db.IntegrityError as e:
-        return e
+    except sqlite3.Error as e:
+        print(colored(f"Error: {e}", "red"))
+        return False
     
     return True
 
-def remove_item(item, quantity, inv, db, cur):
+def remove_item(item: str, quantity: int, inv: Dict[str, int], cur: sqlite3.Cursor) -> bool:
     """
-    Get item and quantity, validate and remove item from the database. Returns True to signal program exit, False otherwise.
-    :param dict inv:
-    :param sqlite3.Connection db: A SQLite database connection.
-    :param sqlite3.Cursor cur: A SQLite Cursor instance.
+    Remove item from the database. Returns True after successful SQL execution. Return False in case of a sqlite3.Error or KeyError.
+    :param str item: Item to add.
+    :param str quantity: Quantity of item to add.
+    :param dict[str, int] inv: Database as a dict object.
+    :param sqlite3.Cursor cur: SQLite Cursor instance.
+    :rtype: bool
     """
-        
+
     try:
         if quantity == inv.get(item, 0):
             cur.execute("DELETE FROM inv WHERE item = ?", (item,))
@@ -158,21 +162,23 @@ def remove_item(item, quantity, inv, db, cur):
             inv[item] -= quantity
     except (sqlite3.Error, KeyError) as e:
         print(colored(f"Error: {e}", "red"))
-        return e
+        return False
     
     return True
 
-def find_item(item, inv):
+def find_item(item: str, inv: Dict[str, int]) -> Tuple[str, List[Tuple[str, int]]]:
     """
     Find item in inventory using regular expression matching. Return list of matching items.
+    :param str item: Item to add.
     :param dict inv: Dict object corresponding to the database.
+    :rtype: Tuple[str, List[Tuple[str, int]]]]
     """
 
-    # Regular expression
+    # Search pattern
     pattern = re.compile(f"^.*{item}.*$")
 
-    # find matches
-    matching_data = [[key, value] for key, value in inv.items() if pattern.match(key)]
+    # Find matches
+    matching_data = [(key, value) for key, value in inv.items() if pattern.match(key)]
     
     return item, matching_data
 
