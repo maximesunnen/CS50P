@@ -7,7 +7,7 @@ Command-line tool to interact with an inventory implemented as a SQL database us
 
 >[!CAUTION]
 >
-> You **need** to [initialize](#python3-project.py--i) the database before using this tool. This generates an `inv.db` file in your working directory.
+> You **need** to [initialize](#python3-projectpy--i) the database before using this tool. This generates an `inv.db` file in your working directory.
 
 To exit the program, use **CTRL+D**.
 
