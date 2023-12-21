@@ -4,10 +4,11 @@ import sys
 import re
 from tabulate import tabulate
 from termcolor import colored
+from typing import List, Dict, Tuple
+
 from helpers import get_item_input, get_quantity_input, is_valid_quantity
 from db import connect_db, init_db, load_db, tabulate_db
 
-from typing import List, Dict, Tuple, Union
 
 DB_FILE_NAME = "inv.db"
 SCHEMA_SQL = "schema.sql"

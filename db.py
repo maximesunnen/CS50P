@@ -1,6 +1,7 @@
 import sqlite3
-from tabulate import tabulate
 import sys
+
+from tabulate import tabulate
 from termcolor import colored
 
 def connect_db(DB_FILE_NAME):

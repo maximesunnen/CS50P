@@ -1,8 +1,9 @@
+import pytest
+import sqlite3
+
 from project import add_item, remove_item, find_item
 from db import load_db, connect_db
 from helpers import get_item_input, get_quantity_input, is_valid_quantity
-import pytest
-import sqlite3
 
 SCHEMA_SQL = "schema.sql"
 DB_FILE_NAME = "inv.db"
