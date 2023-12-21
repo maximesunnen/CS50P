@@ -3,6 +3,7 @@ Command-line tool designed to interact with an inventory implemented as a SQL da
 
 ## Files
 - `.gitignore` contains files to exclude from version control
+- `db.py` contains functions to connect to the database and load its content as a dict object
 - `helpers.py` defines helper functions enabling to get user input
 - `project.py` contains `main()` as well as `add_item()`, `remove_item()` and `find_item()`
 - `README.md` contains the tool description that you're currently reading
