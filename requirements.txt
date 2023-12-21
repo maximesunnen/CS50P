@@ -1,0 +1,7 @@
+sqlite3
+argparse
+sys
+re
+tabulate
+termcolor
+typing
