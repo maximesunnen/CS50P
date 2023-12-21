@@ -6,7 +6,6 @@ from db import load_db, connect_db
 from helpers import get_item_input, get_quantity_input, is_valid_quantity
 
 SCHEMA_SQL = "schema.sql"
-DB_FILE_NAME = "inv.db"
 TEST_DB_FILE_NAME = "test_inv.db"
 
 TEST_ITEM_1 = "MILK"
@@ -36,7 +35,7 @@ class TestClass:
         """
         Test connection to the main database.
         """
-        db = connect_db(DB_FILE_NAME)
+        db = connect_db(TEST_DB_FILE_NAME)
         
         assert isinstance(db, sqlite3.Connection)
 
