@@ -1,5 +1,14 @@
-# CS50P- Introduction to programming with Python
-Command-line tool to interact with an inventory implemented as a SQL database using sqlite3.
+# Command-line tool for interacting with an SQL inventory
+Command-line tool designed to interact with an inventory implemented as a SQL database using sqlite3. This tool enables users to add and remove specific quantities of items from the database. Additionally, the tool allows for searching for specific items and printing the entire database as a table to the console. Different flags are available to access the various functionalities.
+
+## Files
+- `.gitignore` contains files to exclude from version control
+- `helpers.py` defines helper functions enabling to get user input
+- `project.py` contains `main()` as well as `add_item()`, `remove_item()` and `find_item()`
+- `README.md` contains the tool description that you're currently reading
+- `requirements.txt` lists the required libraries
+- `schema.sql` define the structure and organization of the database
+- `test_project.py` contains unit tests
 
 ## Usage
 
@@ -7,7 +16,7 @@ Command-line tool to interact with an inventory implemented as a SQL database us
 
 >[!CAUTION]
 >
-> You **need** to [initialize](#python3-projectpy--i) the database before using this tool. This generates an `inv.db` file in your working directory.
+> You **need** to [initialize](#python3-projectpy--i) the database before using the tool. Initialization generates an `inv.db` file in your working directory.
 
 To exit the program, use **CTRL+D**.
 
@@ -106,6 +115,7 @@ Removes item from the database.
 >  Item to remove:
 >```
 > 2. You **must** spell the item to remove exactly as it is saved inside the database. This can definitely be improved in the future.
+> 3. If you remove the entire quantity of a specific item (i.e the final quantity owned is 0), then the item is removed completely from the database.
 
 ### `python3 project.py -f`
 Finds items in the database based on regular expression pattern matching.
