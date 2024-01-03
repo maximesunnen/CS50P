@@ -1,9 +1,6 @@
 # Command-line tool for interacting with a SQL inventory
 Command-line tool designed to interact with an inventory implemented as a SQL database using sqlite3. This tool enables users to add and remove specific quantities of items from the database. Additionally, the tool allows for searching for specific items and printing the entire database as a table to the console. Different flags are available to access the various functionalities.
 
-## Youtube link
-https://youtu.be/Ooafww8r_lc
-
 ## Files
 - `.gitignore` contains files to exclude from version control
 - `db.py` contains functions to connect to the database and load its content as a dict object
